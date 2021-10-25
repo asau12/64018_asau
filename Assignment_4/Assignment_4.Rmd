@@ -1,0 +1,113 @@
+---
+title: "Assignment_4"
+author: "Abhishek_Sau"
+date: "24/10/2021"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+###Assignment 4
+
+Q1 - Answer - To get the Minimum cost function, Add the Unit shipping cost and the Unit Production cost
+
+Since there is a difference of 10 units between Supply and Demand, we will need to create a dummy warehouse to store the excess. This means we create a 4th Warehouse and it creates two dummy variables
+
+So now, we have 6decision variables and 2 dummy variables
+
+Objective Function:
+Z min = 622 XA1 + 614 XA2 + 630 XA3 + 0 XA4 + 641 XB1 + 645 XB2 + 649 XB3 + 0 XB4
+
+Constraints
+
+Supply Constraints:
+XA1 + XA2 + XA3 + XA4 = 100
+XB1 + XB2 + XB3 + XB4 = 120
+
+Demand Constraints:
+XA1 + XB1 = 80
+XA2 + XB2 = 60
+XA3 + XB3 = 70
+XA4 + XB4 = 10 
+
+Non Negative constraints:
+XIJ >=0 where I= Plant (I=A, B) and J=Warehouse (J=1,2,3,4)
+
+
+```{r}
+
+setwd("D:\\Study\\Assignments\\QMM\\Assignment 4")
+
+library(lpSolveAPI)
+lprec<-make.lp(0,8)
+lp.control(lprec,sense='min')
+
+#objective function
+set.objfn(lprec,c(622,614,630,0,641,645,649,0))
+
+#constraints
+add.constraint(lprec,rep(1,4),"=",100,indices =c(1,2,3,4))
+add.constraint(lprec,rep(1,4),"=",120,indices =c(5,6,7,8))
+add.constraint(lprec,rep(1,2),"=",80,indices =c(1,5))
+add.constraint(lprec,rep(1,2),"=",60,indices =c(2,6))
+add.constraint(lprec,rep(1,2),"=",70,indices =c(3,7))
+add.constraint(lprec,rep(1,2),"=",10,indices=c(4,8))
+
+solve(lprec)
+get.objective(lprec)
+get.constraints(lprec)
+get.variables(lprec)
+```
+Q2- Answer A -
+Since there is a difference between supply and demand, we will introduce a dummy variable on demand side because demand is smaller that supply.
+
+Objective Function:
+Z(min) = 1.52 X1A + 1.60 X1B + 1.40 X1C + 1.70 X2A + 1.63 X2B + 1.55 X2C + 1.45 X3A+
+1.57 X3B + 1.30 X3C + 5.15 XAR1 + 5.69 XAR2 + 6.13 XAR3 + 5.63 XAR4 + 5.80 XAR5 + 0 XAR6 + 5.12
+XBR1 + 5.47 XBR2 + 6.05 XBR3 + 6.12 XBR4 + 5.71 XBR5 + 0XBR6 + 5.32XCR1 + 6.16 XCR2 + 6.25 XCR3 +
+6.17 XCR4 + 5.87 XCR5 + 0 XCR6
+Constraints
+
+Supply Constraints:
+
+X1A + X1B + X1C=93
+X2A + X2B + X2C=88
+X3A + X3B + X3C=95
+
+Demand Constraints:
+
+XAR1+XBR1+XCR1=30
+XAR2+XBR2+XCR2=57
+XAR3+XBR3+XCR3=48
+XAR4+XBR4+XCR4=91
+XAR5+XBR5+XCR5=48
+XAR6+XBR6+XCR6=2
+
+Constraints from pumps to the refineries:
+
+X1A + X2A + X3A = XAR1 + XAR2 + XAR3 + XAR4 + XAR5 + XAR6
+X1B+ X2B + X3B = XBR1 + XBR2 + XBR3 + XBR4 + XBR5 + XBR6
+X1C + X2C + X3C = XCR1 + XCR2 + XCR3+ XCR4 + XCR5 + XCR6
+
+Xij>=0; (i= wells(1,2,3) and j=pumps(A,B,C)
+Xjk>=0 where j=pumps(P,Q,R) and k=refineries(R1,R2,R3,R4,R5,R6)
+
+A- The optimal solution (minimum cost) is 1966.68$
+
+A- The well that is used to capacity is Well 3
+
+
+Q2 - Answer B- Network Diagram
+
+```{r, fig.height=10, fig.width=10}
+
+knitr::include_graphics("Capture-min.png")
+```
+
+
