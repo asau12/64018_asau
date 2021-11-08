@@ -1,0 +1,242 @@
+---
+title: "Assignmnet_5_QMM_DEA"
+author: "Abhishek_Sau"
+date: "07/11/2021"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Assignment 5
+
+
+## Hope Valley Health Care Association
+
+## 1. The Hope Valley Health Care Association owns and operates six nursing homes in adjoining states. An evaluation of their efficiency has been undertaken using two inputs and two outputs. The inputs are staffing labor (measured in average hours per day) and the cost of supplies (in thousands of dollars per day). The outputs are the number of patient-days reimbursed by third-party sources and the number of patient-days reimbursed privately. A summary of performance data is shown in the table below.
+
+
+
+```{r}
+setwd('D:\\Study\\Assignments\\QMM\\Assignment 5')
+
+
+library(Benchmarking)
+library(lpSolveAPI)
+health <- read.lp("Health.lp")
+solve(health)
+
+```
+```{r}
+get.objective(health)
+
+get.variables(health) 
+```
+
+
+##We put our inputs and outputs as vectors. we have 2 inputs (Staff hours, Supplies) and 2 outputs (“Reimbursed Patient_Days”,"Privately Paid Patient_Day) .
+```{r}
+
+x <- matrix(c(150, 400, 320, 520, 350, 320, 0.2, 0.7, 1.2, 2.0, 1.2, 0.7), ncol = 2)
+y <- matrix(c(14000,14000,42000,28000,19000,14000,3500,21000,10500,42000,25000,15000),ncol = 2)
+
+colnames(y) <- c("Reimbursed Patient_Days","Privately Paid Patient_Days")
+colnames(x) <- c("Staff_Hours", "Supplies")
+
+Table<- cbind(x,y)
+row.names(Table) = c("Fac1", "Fac2", "Fac3", "Fac4", "Fac5", "Fac6")
+Table
+
+```
+## DEA Analysis under all DEA assumptions (FDH, CRS, VRS, IRS, DRS, and FRH)
+```{r}
+CRS <- dea(x,y, RTS = "crs") 
+print(CRS) 
+
+```
+## CRS - Facilities 1,2,3,4 are efficient whereas facilities 5,6 have efficiency rates of 98% and 87% respectively.
+
+```{r}
+peers(CRS)
+```
+
+
+```{r}
+CRS_Weights <- lambda(CRS) 
+CRS_Weights
+```
+## The weights for facility 5 are 0.20, 0.08, 0.54. The weights for facility 6 are 0.34, 0.39, 0.13
+```{r}
+
+FDH <- dea(x,y, RTS= "fdh")
+FDH #all facilities are efficient
+```
+
+```{r}
+peers(FDH) #the peer for each facility is itself
+
+```
+
+```{r}
+FDH_Weights <- lambda(FDH)
+FDH_Weights
+```
+
+
+
+```{r}
+VRS <- dea(x,y, RTS = "vrs")
+VRS #All facilities are efficient except for facility 6
+```
+
+```{r}
+peers(VRS) #peers for facility 6 are 1,2,5
+```
+
+```{r}
+VRS_Weights <- lambda(VRS)
+VRS_Weights
+```
+
+```{r}
+
+IRS <- dea(x,y, RTS= "irs")
+IRS #All facilities are efficient except for facility
+```
+
+
+```{r}
+peers(IRS)
+```
+```{r}
+IRS_Weights <- lambda(IRS)
+IRS_Weights
+```
+
+```{r}
+DRS <- dea(x,y, RTS= "drs") 
+DRS #All facilities are efficient except for facility 5,6
+```
+
+```{r}
+peers(DRS) # The peers units for for facilities 5,6 are 1,2,4
+```
+
+```{r}
+DRS_Weights <- lambda(DRS)
+DRS_Weights
+```
+
+```{r}
+FRH <- dea(x,y, RTS= "add")
+FRH #all facilities are efficient
+```
+```{r}
+peers(FRH) #the peer unit for each facility is itself
+```
+
+```{r}
+FRH_Weights <- lambda(FRH)
+FRH_Weights
+```
+
+```{r}
+as.data.frame(Table)
+```
+#3. Summarize your results in a tabular format
+
+```{r}
+
+df<-data.frame (CRS = c(1.0000, 1.0000, 1.0000, 1.0000, 0.9775, 0.8675),
+FDH= c(1,1,1,1,1,1), VRS= c(1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 0.8963),IRS =c( 1.0000, 1.0000, 1.0000, 1.0000, 1.0000 ,0.8963), DRS= c(1.0000 ,1.0000 ,1.0000, 1.0000, 0.9775, 0.8675), FRH= c(1,1,1,1,1,1))
+
+df
+```
+#The efficiency results at each facility in every DEA assumption 
+
+#Observation - CRS and DRS give same results, FDH and FRH gave same results, and finally both VRS and IRS gave same results as well.
+
+```{r}
+results <- cbind(Table, df)
+results[,-c(1:4)]
+```
+#Summary of the weights assigned to each Facility in every DEA assumption
+
+```{r}
+Weights_tbl <- cbind(FDH_Weights, CRS_Weights, VRS_Weights, IRS_Weights, DRS_Weights, FRH_Weights)
+
+row.names(Weights_tbl) <-   c("Fac1", "Fac2", "Fac3", "Fac4", "Fac5", "Fac6")
+
+colnames(Weights_tbl) <- c("FDH" ,"FDH", "FDH", "FDH","FDH","FDH", "CRS", "CRS", "CRS", "CRS", "VRS", "VRS", "VRS","VRS", "VRS", "IRS", "IRS", "IRS", "IRS","IRS", "DRS", "DRS", "DRS", "DRS", "FRH", "FRH", "FRH", "FRH", "FRH","FRH") 
+
+as.data.frame(Weights_tbl)   
+```
+#The above table summarizes the weights  for each facility under each DEA assumption
+
+
+### Summary for Q1
+#### Under FDH and FRH all facilities are efficient, 
+#### Under CRS and DRS all facilities were efficient except for Facility 5,6. 
+#### Under VRS and IRS assumptions all except for facility 6 were efficient.  
+#### The peer units for efficient facilities are themselves. 
+#### Under VRS and IRS assumption the peers unit for inefficient facilities were 1,2 and 5. 
+#### Under CRS and DRS, the peers unites were 1,2,and 4. 
+
+#Q2 - The Research and Development Division of the Emax Corporation has developed threenew products. A decision now needs to be made on which mix of these products should be produced. Management wants primary consideration given to three factors: total profit, stability in the workforce, and achieving an increase in the company’s earnings next year from the $75 million achieved this year. In particular, using the units given in the following table, they want to
+#Maximize Z = P - 6C - 3D, where
+#P = total (discounted) profit over the life of the new products,
+#C = change (in either direction) in the current level of employment,
+#D = decrease (if any) in next year’s earnings from the current year’s level. 
+#The amount of any increase in earnings does not enter into Z, because management is concerned primarily with just achieving some increase to keep the stockholders happy. (It has mixed feelings about a large increase that then would be difficult to surpass in subsequent years.)
+
+## 1. Define y1+ and y1-, respectively, as the amount over (if any) and the amount under (if any) the employment level goal. Define y2+ and y2- in the same way for the goal regarding earnings next year. Define x1, x2, and x3 as the production rates of Products 1, 2, and 3, respectively. With these definitions, use the goal programming technique to express y1+,y1-, y2+ and y2- algebraically in terms of x1, x2, and x3. Also express P in terms of x1, x2, and x3.
+
+### Answer - 
+
+### y1 = y1p - y1m =  6 x1 + 4 x2 + 5 x3 - 50
+### y2 = y2p - y2m =8 x1 + 7 x2 +5 x3 - 75
+### P = 20 x1 + 15 x2 + 25 x3
+
+#### y1p is going over the employment level goal and the weighted penality is 6
+#### y1m is going under the employment level goal and the weighted penality is 6
+#### y2p is going over the earnings goal for next year- no penality
+#### y2m is going under the earnings goal for next year and the penality is 3.
+
+#### x1 is the quantity of product 1 to be produced
+#### x2 is the quantity of product 2 to be produced
+#### x3 is the quantity of product 3 to be produced
+
+### 2. Express management’s objective function in terms of x1, x2, x3, y1+, y1-, y2+ and y2-.
+
+### Answer -  Objective function
+### max Z: 20x1 + 15x2 + 25x3 - 6 y1p - 6 y1m - 3 y2m
+
+### 3.  Formulate and solve the linear programming model. What are your findings?
+
+### Answer -
+### Objective Function - maxZ: 20x1 + 15x2 + 25x3 - 6 y1p - 6 y1m - 3 y2m
+
+### Constraints 
+### 6x1 + 4x2 + 5x3 - y1p + y1m = 50
+### 8x1 + 7x2 + 5x3 - y2p + y2m + 75
+### x1, x2, x3, y1p, y1m, y2p, y2m >=0
+
+
+```{r}
+Emax <- read.lp("Emax.lp")
+solve(Emax)
+```
+
+```{r}
+get.objective(Emax)
+```
+
+```{r}
+get.variables(Emax)
+```
+### Z = 225
+### x1 = 0, x2 = 0, x3 = 15, y1p = 25, y1m = 0, y2m = 0
